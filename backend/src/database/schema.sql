@@ -389,6 +389,7 @@ CREATE TABLE IF NOT EXISTS gastos_financieros (
   ) NOT NULL DEFAULT 'OTROS',
   proveedor_id INT NULL,
   usuario_id INT NOT NULL,
+  turno_caja_id INT NULL,
   descripcion VARCHAR(255) NOT NULL,
   monto DECIMAL(10, 2) NOT NULL,
   metodo_pago ENUM('EFECTIVO', 'TRANSFERENCIA', 'TARJETA', 'CHEQUE') NOT NULL DEFAULT 'EFECTIVO',
@@ -404,7 +405,8 @@ CREATE TABLE IF NOT EXISTS gastos_financieros (
   CONSTRAINT fk_gastos_proveedor FOREIGN KEY (proveedor_id) REFERENCES proveedores (id) ON DELETE SET NULL ON UPDATE CASCADE,
   INDEX idx_gastos_fecha (fecha_gasto),
   INDEX idx_gastos_categoria (categoria),
-  INDEX idx_gastos_proveedor (proveedor_id)
+  INDEX idx_gastos_proveedor (proveedor_id),
+  INDEX idx_gastos_turno (turno_caja_id)
 ) ENGINE=InnoDB;
 
 -- -----------------------------------------------------------------------------

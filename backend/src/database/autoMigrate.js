@@ -49,6 +49,17 @@ async function ensureColumnsExist() {
       console.log('✅ [Auto-Migrate] Columna imagen_url agregada a variantes_producto.');
     }
   } catch (err) {}
+
+  // 5. Columna turno_caja_id en gastos_financieros
+  try {
+    const [turnoCol] = await db.query("SHOW COLUMNS FROM gastos_financieros LIKE 'turno_caja_id'");
+    if (!turnoCol || turnoCol.length === 0) {
+      await db.query("ALTER TABLE gastos_financieros ADD COLUMN turno_caja_id INT NULL AFTER usuario_id, ADD INDEX idx_gastos_turno (turno_caja_id)");
+      console.log('✅ [Auto-Migrate] Columna turno_caja_id agregada a gastos_financieros.');
+    }
+  } catch (err) {
+    console.warn('⚠️ [Auto-Migrate] Verificación de turno_caja_id en gastos_financieros:', err.message);
+  }
 }
 
 async function checkAndRunAutoMigration() {
