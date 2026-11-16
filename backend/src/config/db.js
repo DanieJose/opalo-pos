@@ -2,7 +2,18 @@ const mysql = require('mysql2/promise');
 const config = require('./config');
 
 // Creamos un pool de conexiones optimizado
-const pool = mysql.createPool(config.db);
+let pool;
+if (config.databaseUrl) {
+  pool = mysql.createPool({
+    uri: config.databaseUrl,
+    waitForConnections: true,
+    connectionLimit: 15,
+    queueLimit: 0,
+    timezone: '-06:00'
+  });
+} else {
+  pool = mysql.createPool(config.db);
+}
 
 // Verificación inicial de conexión (no bloqueante en arranque)
 pool.getConnection()

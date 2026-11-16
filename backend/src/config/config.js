@@ -3,12 +3,13 @@ require('dotenv').config();
 module.exports = {
   port: process.env.PORT || 4000,
   nodeEnv: process.env.NODE_ENV || 'development',
+  databaseUrl: process.env.DATABASE_URL || process.env.MYSQL_URL || null,
   db: {
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'opalo_pos_db',
-    port: parseInt(process.env.DB_PORT || '3306', 10),
+    host: process.env.DB_HOST || process.env.MYSQLHOST || 'localhost',
+    user: process.env.DB_USER || process.env.MYSQLUSER || 'root',
+    password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || '',
+    database: process.env.DB_NAME || process.env.MYSQLDATABASE || 'opalo_pos_db',
+    port: parseInt(process.env.DB_PORT || process.env.MYSQLPORT || '3306', 10),
     waitForConnections: true,
     connectionLimit: 15,
     queueLimit: 0,

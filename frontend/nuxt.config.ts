@@ -15,12 +15,16 @@ export default defineNuxtConfig({
 
   nitro: {
     routeRules: {
-      '/uploads/**': { proxy: 'http://localhost:4000/uploads/**' }
+      '/uploads/**': { 
+        proxy: (process.env.BACKEND_URL || (process.env.NUXT_PUBLIC_API_BASE ? process.env.NUXT_PUBLIC_API_BASE.replace(/\/api\/v1\/?$/, '') : 'http://localhost:4000')) + '/uploads/**' 
+      }
     }
   },
 
   routeRules: {
-    '/uploads/**': { proxy: 'http://localhost:4000/uploads/**' }
+    '/uploads/**': { 
+      proxy: (process.env.BACKEND_URL || (process.env.NUXT_PUBLIC_API_BASE ? process.env.NUXT_PUBLIC_API_BASE.replace(/\/api\/v1\/?$/, '') : 'http://localhost:4000')) + '/uploads/**' 
+    }
   },
 
   runtimeConfig: {

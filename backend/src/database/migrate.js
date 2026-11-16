@@ -7,21 +7,29 @@ async function runMigration() {
   console.log('💎 Ópalo Accesorios - Asistente de Inicialización de Base de Datos');
   console.log('📍 Conectando al servidor MySQL...');
 
-  const host = process.env.DB_HOST || 'localhost';
-  const user = process.env.DB_USER || 'root';
-  const password = process.env.DB_PASSWORD || '';
-  const port = parseInt(process.env.DB_PORT || '3306', 10);
-  const database = process.env.DB_NAME || 'opalo_pos_db';
+  const host = process.env.DB_HOST || process.env.MYSQLHOST || 'localhost';
+  const user = process.env.DB_USER || process.env.MYSQLUSER || 'root';
+  const password = process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || '';
+  const port = parseInt(process.env.DB_PORT || process.env.MYSQLPORT || '3306', 10);
+  const database = process.env.DB_NAME || process.env.MYSQLDATABASE || 'opalo_pos_db';
+  const dbUrl = process.env.DATABASE_URL || process.env.MYSQL_URL || null;
 
   let connection;
   try {
-    connection = await mysql.createConnection({
-      host,
-      user,
-      password,
-      port,
-      multipleStatements: true
-    });
+    if (dbUrl) {
+      connection = await mysql.createConnection({
+        uri: dbUrl,
+        multipleStatements: true
+      });
+    } else {
+      connection = await mysql.createConnection({
+        host,
+        user,
+        password,
+        port,
+        multipleStatements: true
+      });
+    }
 
     console.log(`✅ Conexión establecida con MySQL en ${host}:${port}`);
 
