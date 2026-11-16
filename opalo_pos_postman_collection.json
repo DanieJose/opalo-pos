@@ -1,0 +1,362 @@
+{
+  "info": {
+    "name": "Ópalo Accesorios POS API (Tocoa, Honduras)",
+    "_postman_id": "opalo-pos-api-v1",
+    "description": "Colección completa de endpoints para el sistema Punto de Venta de Ópalo Accesorios.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Autenticación",
+      "item": [
+        {
+          "name": "Login (Obtener JWT)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.success && json.data && json.data.token) {",
+                  "    pm.collectionVariables.set('token', json.data.token);",
+                  "    console.log('Token JWT guardado automáticamente en la variable de colección');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@opalo.hn\",\n  \"password\": \"Admin123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Obtener Perfil Actual",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "profile"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Productos y Variantes",
+      "item": [
+        {
+          "name": "Listar Productos (Paginado)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/productos?page=1&limit=10&estado=ACTIVO",
+              "host": ["{{baseUrl}}"],
+              "path": ["productos"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "estado", "value": "ACTIVO" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar Variante por Código de Barras o SKU (POS Escáner)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/productos/buscar/codigo?term=7421001001",
+              "host": ["{{baseUrl}}"],
+              "path": ["productos", "buscar", "codigo"],
+              "query": [
+                { "key": "term", "value": "7421001001" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Crear Producto con Variantes de Talla y Color",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoria_id\": 4,\n  \"nombre\": \"Conjunto Lino Tocoa\",\n  \"descripcion\": \"Conjunto elegante para dama en clima cálido\",\n  \"precio_base\": 590.00,\n  \"variantes\": [\n    {\n      \"sku\": \"CNJ-LIN-S-BEI\",\n      \"codigo_barras\": \"7423001001\",\n      \"talla\": \"S\",\n      \"color\": \"Beige\",\n      \"precio_venta\": 590.00,\n      \"stock\": 8,\n      \"stock_minimo\": 2\n    },\n    {\n      \"sku\": \"CNJ-LIN-M-BEI\",\n      \"codigo_barras\": \"7423001002\",\n      \"talla\": \"M\",\n      \"color\": \"Beige\",\n      \"precio_venta\": 590.00,\n      \"stock\": 12,\n      \"stock_minimo\": 3\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/productos",
+              "host": ["{{baseUrl}}"],
+              "path": ["productos"]
+            }
+          }
+        },
+        {
+          "name": "Ajustar Stock de una Variante",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"stock\": 25\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/productos/variantes/1/stock",
+              "host": ["{{baseUrl}}"],
+              "path": ["productos", "variantes", "1", "stock"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Clientes y Lealtad QR",
+      "item": [
+        {
+          "name": "Listar Clientes",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/clientes",
+              "host": ["{{baseUrl}}"],
+              "path": ["clientes"]
+            }
+          }
+        },
+        {
+          "name": "Buscar Cliente por QR de Lealtad",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/clientes/buscar/qr/OPALO-LOYAL-0002",
+              "host": ["{{baseUrl}}"],
+              "path": ["clientes", "buscar", "qr", "OPALO-LOYAL-0002"]
+            }
+          }
+        },
+        {
+          "name": "Registrar Nueva Clienta",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Andrea Nicole Gómez\",\n  \"rtn_dni\": \"0209200000456\",\n  \"telefono\": \"+504 9876-5432\",\n  \"email\": \"andrea.gomez@gmail.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/clientes",
+              "host": ["{{baseUrl}}"],
+              "path": ["clientes"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Ventas / POS Checkout",
+      "item": [
+        {
+          "name": "Procesar Venta en Caja (Efectivo / ISV 15%)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cliente_id\": 2,\n  \"metodo_pago\": \"EFECTIVO\",\n  \"monto_recibido\": 1000.00,\n  \"items\": [\n    {\n      \"variante_id\": 1,\n      \"cantidad\": 1,\n      \"descuento\": 0\n    },\n    {\n      \"variante_id\": 9,\n      \"cantidad\": 2,\n      \"descuento\": 0\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ventas",
+              "host": ["{{baseUrl}}"],
+              "path": ["ventas"]
+            }
+          }
+        },
+        {
+          "name": "Historial de Ventas del Día",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ventas",
+              "host": ["{{baseUrl}}"],
+              "path": ["ventas"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Reportes y Cierre de Caja",
+      "item": [
+        {
+          "name": "Arqueo y Cierre Diario de Caja",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reportes/dashboard",
+              "host": ["{{baseUrl}}"],
+              "path": ["reportes", "dashboard"]
+            }
+          }
+        },
+        {
+          "name": "Alertas de Variantes con Stock Mínimo",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reportes/stock-bajo",
+              "host": ["{{baseUrl}}"],
+              "path": ["reportes", "stock-bajo"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Usuarios y Roles (ADMIN)",
+      "item": [
+        {
+          "name": "Listar Usuarios",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios",
+              "host": ["{{baseUrl}}"],
+              "path": ["usuarios"]
+            }
+          }
+        },
+        {
+          "name": "Crear Usuario",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Katherine Peña\",\n  \"email\": \"katherine@opalo.hn\",\n  \"password\": \"ClaveSegura123!\",\n  \"telefono\": \"+504 9988-7766\",\n  \"rol_id\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/usuarios",
+              "host": ["{{baseUrl}}"],
+              "path": ["usuarios"]
+            }
+          }
+        },
+        {
+          "name": "Actualizar Usuario",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Katherine Peña Modificada\",\n  \"rol_id\": 2,\n  \"estado\": \"ACTIVO\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/2",
+              "host": ["{{baseUrl}}"],
+              "path": ["usuarios", "2"]
+            }
+          }
+        },
+        {
+          "name": "Cambiar Estado (Activar/Inactivar)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/2/toggle-estado",
+              "host": ["{{baseUrl}}"],
+              "path": ["usuarios", "2", "toggle-estado"]
+            }
+          }
+        },
+        {
+          "name": "Listar Roles",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roles",
+              "host": ["{{baseUrl}}"],
+              "path": ["roles"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+

@@ -1,0 +1,59 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: opalo_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: opalo_pos_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/src/database/schema.sql:/docker-entrypoint-initdb.d/1_schema.sql:ro
+      - ./backend/src/database/seed.sql:/docker-entrypoint-initdb.d/2_seed.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: opalo_backend
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      PORT: 4000
+      NODE_ENV: production
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASSWORD: rootpassword
+      DB_NAME: opalo_pos_db
+      DB_PORT: 3306
+      JWT_SECRET: opalo_accesorios_secret_key_tocoa_2026_super_secure
+      IMPUESTO_ISV_PORCENTAJE: 15
+      MONEDA_CODIGO: HNL
+      MONEDA_SIMBOLO: L
+    ports:
+      - "4000:4000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: opalo_frontend
+    restart: always
+    depends_on:
+      - backend
+    environment:
+      NUXT_PUBLIC_API_BASE: http://localhost:4000/api/v1
+    ports:
+      - "3000:3000"
+
+volumes:
+  mysql_data:
+
