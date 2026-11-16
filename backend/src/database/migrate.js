@@ -31,26 +31,39 @@ async function runMigration() {
       });
     }
 
-    console.log(`✅ Conexión establecida con MySQL en ${host}:${port}`);
+    console.log(`✅ Conexión establecida con MySQL (${host || 'vía URI'})`);
 
-    // Leer schema.sql
+    // Asegurar base de datos activa
+    if (database) {
+      await connection.query(`CREATE DATABASE IF NOT EXISTS \`${database}\`; USE \`${database}\`;`);
+    }
+
+    // Leer schema.sql adaptando el nombre de la BD si es necesario
     const schemaPath = path.join(__dirname, 'schema.sql');
-    const schemaSql = fs.readFileSync(schemaPath, 'utf8');
+    let schemaSql = fs.readFileSync(schemaPath, 'utf8');
+    if (database && database !== 'opalo_pos_db') {
+      schemaSql = schemaSql
+        .replace(/CREATE DATABASE IF NOT EXISTS `?opalo_pos_db`?[^;]*;/gi, '')
+        .replace(/USE `?opalo_pos_db`?;/gi, `USE \`${database}\`;`);
+    }
 
     console.log('⚙️ Ejecutando schema.sql (creación de base de datos y tablas)...');
     await connection.query(schemaSql);
     console.log('✅ Esquema creado exitosamente.');
 
-    // Leer seed.sql
+    // Leer seed.sql adaptando el nombre de la BD si es necesario
     const seedPath = path.join(__dirname, 'seed.sql');
     if (fs.existsSync(seedPath)) {
-      const seedSql = fs.readFileSync(seedPath, 'utf8');
+      let seedSql = fs.readFileSync(seedPath, 'utf8');
+      if (database && database !== 'opalo_pos_db') {
+        seedSql = seedSql.replace(/USE `?opalo_pos_db`?;/gi, `USE \`${database}\`;`);
+      }
       console.log('🌱 Ejecutando seed.sql (datos iniciales de prueba y roles)...');
       await connection.query(seedSql);
       console.log('✅ Datos iniciales cargados exitosamente.');
     }
 
-    console.log('\n🎉 ¡Base de datos "opalo_pos_db" lista para operar!');
+    console.log(`\n🎉 ¡Base de datos "${database}" lista para operar!`);
     console.log('Usuarios listos para usar:');
     console.log('  - Administrador: admin@opalo.hn / Admin123!');
     console.log('  - Cajero: caja1@opalo.hn / Admin123!');
