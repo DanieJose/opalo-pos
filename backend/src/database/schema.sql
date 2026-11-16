@@ -142,6 +142,9 @@ CREATE TABLE IF NOT EXISTS ventas (
   isv_18 DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
   total DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
   metodo_pago ENUM('EFECTIVO', 'TARJETA', 'TRANSFERENCIA', 'MIXTO') NOT NULL DEFAULT 'EFECTIVO',
+  monto_efectivo DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+  monto_tarjeta DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+  monto_transferencia DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
   banco_transferencia VARCHAR(50) NULL, -- Atlántida, BAC Credomatic, Ficohsa, Banrural, Occidente, etc.
   monto_recibido DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
   cambio DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
