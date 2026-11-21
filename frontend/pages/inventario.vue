@@ -172,7 +172,7 @@
                   <span>Existencias</span>
                 </div>
               </th>
-              <th class="py-3.5 px-4 text-right min-w-[250px]">
+              <th class="py-3.5 px-4 text-right min-w-[300px]">
                 <div class="flex items-center justify-end gap-1.5">
                   <span>⚡</span>
                   <span>Acciones Rápidas</span>
@@ -407,6 +407,19 @@
                     </svg>
                     <span class="hidden sm:inline">Etiquetas</span>
                   </NuxtLink>
+
+                  <!-- 5. Eliminar Producto (Solo Administrador) -->
+                  <button 
+                    v-if="isAdmin"
+                    @click="deleteProductQuick(prod)"
+                    class="h-8 px-2.5 rounded-xl bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-700 font-bold text-xs transition border border-slate-200/80 hover:border-rose-300 cursor-pointer shadow-2xs inline-flex items-center gap-1.5 group"
+                    title="Eliminar producto completo del inventario (Solo Administrador)"
+                  >
+                    <svg class="w-3.5 h-3.5 text-rose-500 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    <span class="hidden sm:inline">Eliminar</span>
+                  </button>
                 </div>
               </td>
             </tr>
@@ -1193,23 +1206,40 @@
           </div>
 
           <!-- BOTONES DE ACCIÓN DEL MODAL -->
-          <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-            <button 
-              type="button" 
-              @click="isNewProductModalOpen = false"
-              class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
-            >
-              Cancelar
-            </button>
+          <div class="flex items-center justify-between gap-3 pt-4 border-t border-slate-100">
+            <div>
+              <button 
+                v-if="editingProductId && isAdmin"
+                type="button" 
+                @click="deleteProductFromEditModal"
+                class="px-3.5 py-2 rounded-xl text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition cursor-pointer flex items-center gap-1.5"
+                title="Eliminar este producto completo del inventario (Solo Administrador)"
+              >
+                <svg class="w-3.5 h-3.5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                <span>Eliminar Producto</span>
+              </button>
+            </div>
 
-            <button 
-              type="submit" 
-              :disabled="isSubmittingNewProduct"
-              class="px-6 py-2.5 bg-gradient-to-r from-opalo-600 to-rose-600 hover:from-opalo-700 hover:to-rose-700 text-white rounded-xl text-xs font-black transition shadow-lg shadow-opalo-500/25 flex items-center gap-2 cursor-pointer disabled:opacity-50"
-            >
-              <span v-if="isSubmittingNewProduct">⏳</span>
-              <span>{{ isSubmittingNewProduct ? 'Guardando...' : (editingProductId ? 'Guardar Cambios' : 'Guardar Producto e Inventario') }}</span>
-            </button>
+            <div class="flex items-center gap-3">
+              <button 
+                type="button" 
+                @click="isNewProductModalOpen = false"
+                class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+              >
+                Cancelar
+              </button>
+
+              <button 
+                type="submit" 
+                :disabled="isSubmittingNewProduct"
+                class="px-6 py-2.5 bg-gradient-to-r from-opalo-600 to-rose-600 hover:from-opalo-700 hover:to-rose-700 text-white rounded-xl text-xs font-black transition shadow-lg shadow-opalo-500/25 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                <span v-if="isSubmittingNewProduct">⏳</span>
+                <span>{{ isSubmittingNewProduct ? 'Guardando...' : (editingProductId ? 'Guardar Cambios' : 'Guardar Producto e Inventario') }}</span>
+              </button>
+            </div>
           </div>
 
         </form>
@@ -1255,9 +1285,10 @@
                 Guardar
               </button>
               <button 
+                v-if="isAdmin"
                 @click="deleteVariantFromStockModal(v)"
                 class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1 border border-rose-200"
-                title="Eliminar esta variante"
+                title="Eliminar esta variante (Solo Administrador)"
               >
                 <span>🗑️</span>
                 <span>Eliminar</span>
@@ -1273,13 +1304,15 @@
         <!-- Footer del Modal con opción de eliminar producto completo -->
         <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
           <button
+            v-if="isAdmin"
             @click="deleteEntireProductFromModal"
             class="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition cursor-pointer flex items-center gap-1.5 border border-rose-200"
-            title="Eliminar producto completo del inventario"
+            title="Eliminar producto completo del inventario (Solo Administrador)"
           >
             <span>🗑️</span>
             <span>Eliminar Producto</span>
           </button>
+          <div v-else></div>
 
           <button
             @click="isStockModalOpen = false"
@@ -1578,6 +1611,7 @@
 <script setup>
 const { apiFetch } = useApi();
 const { onEvent } = useSocket();
+const { isAdmin } = useAuth();
 
 const products = ref([]);
 const categoriesList = ref([]);
@@ -2355,7 +2389,63 @@ const saveVariantStock = async (v) => {
   }
 };
 
+const deleteProductQuick = async (prod) => {
+  if (!prod || !isAdmin.value) return;
+
+  const confirmMsg = `¿Estás seguro de que deseas eliminar el producto "${prod.nombre}" del inventario?\n\nEsta acción inactivará el estilo y todas sus variantes del catálogo. Solo los administradores pueden realizar esta acción.`;
+  if (!confirm(confirmMsg)) {
+    return;
+  }
+
+  try {
+    const res = await apiFetch(`/productos/${prod.id}`, {
+      method: 'DELETE'
+    });
+
+    if (res && res.success) {
+      alert(res.message || 'Producto eliminado exitosamente');
+      await loadProducts();
+    } else {
+      alert(res?.message || 'Error al eliminar el producto');
+    }
+  } catch (err) {
+    alert(err?.data?.message || err?.message || 'Error al eliminar el producto');
+  }
+};
+
+const deleteProductFromEditModal = async () => {
+  if (!editingProductId.value || !isAdmin.value) return;
+
+  const prodNombre = newProductData.nombre || 'este producto';
+  const confirmMsg = `¿Estás seguro de que deseas eliminar completamente "${prodNombre}" del inventario?`;
+  if (!confirm(confirmMsg)) {
+    return;
+  }
+
+  try {
+    const res = await apiFetch(`/productos/${editingProductId.value}`, {
+      method: 'DELETE'
+    });
+
+    if (res && res.success) {
+      alert(res.message || 'Producto eliminado exitosamente');
+      isNewProductModalOpen.value = false;
+      editingProductId.value = null;
+      await loadProducts();
+    } else {
+      alert(res?.message || 'Error al eliminar el producto');
+    }
+  } catch (err) {
+    alert(err?.data?.message || err?.message || 'Error al eliminar el producto');
+  }
+};
+
 const deleteVariantFromStockModal = async (v) => {
+  if (!isAdmin.value) {
+    alert('Acción restringida: Solo el Administrador puede eliminar variantes.');
+    return;
+  }
+
   if (!confirm(`¿Estás seguro de que deseas eliminar la variante "${v.talla} • ${v.color}" (SKU: ${v.sku})?`)) {
     return;
   }
@@ -2380,6 +2470,11 @@ const deleteVariantFromStockModal = async (v) => {
 };
 
 const deleteEntireProductFromModal = async () => {
+  if (!isAdmin.value) {
+    alert('Acción restringida: Solo el Administrador puede eliminar productos.');
+    return;
+  }
+
   if (!selectedProduct.value) return;
 
   if (!confirm(`¿Estás seguro de que deseas eliminar completamente el producto "${selectedProduct.value.nombre}" del inventario?`)) {
