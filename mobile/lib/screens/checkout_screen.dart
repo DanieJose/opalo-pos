@@ -105,7 +105,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
                 child: Column(
                   children: [
-                    const Text('TOTAL A COBRAR', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white70)),
+                    const Text('TOTAL COBRO AL CLIENTE', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white70)),
                     const SizedBox(height: 4),
                     Text(
                       Formatters.currency(cart.total),
@@ -113,7 +113,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Subtotal: ${Formatters.currency(cart.subtotal)}  •  ISV (15%): ${Formatters.currency(cart.isv15)}',
+                      'Subtotal Gravable (15%): ${Formatters.currency(cart.subtotal)}  •  ISV (15%): ${Formatters.currency(cart.isv15)}',
                       style: const TextStyle(fontSize: 11, color: Colors.white60),
                     ),
                   ],
@@ -241,18 +241,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               SizedBox(
                 width: double.infinity,
                 height: 52,
-                child: ElevatedButton(
+                child: ElevatedButton.icon(
                   onPressed: cart.isSubmitting ? null : _processCheckout,
+                  icon: const Icon(Icons.print_outlined, color: Colors.white, size: 20),
+                  label: cart.isSubmitting
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : Text(
+                          'Confirmar e Imprimir Recibo (${Formatters.currency(cart.total)})',
+                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14),
+                        ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.emerald,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
-                  child: cart.isSubmitting
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : Text(
-                          'Confirmar Cobro de ${Formatters.currency(cart.total)}',
-                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15),
-                        ),
                 ),
               ),
             ],

@@ -16,6 +16,9 @@ class MobileCartItem {
   final double precioUnitario;
   int cantidad;
   final int stockDisponible;
+  final bool precioIncluyeIsv;
+  final String tipoImpuesto;
+  double descuento;
 
   MobileCartItem({
     required this.varianteId,
@@ -27,9 +30,31 @@ class MobileCartItem {
     required this.precioUnitario,
     required this.cantidad,
     required this.stockDisponible,
+    this.precioIncluyeIsv = true,
+    this.tipoImpuesto = 'ISV_15',
+    this.descuento = 0.0,
   });
 
-  double get subtotal => precioUnitario * cantidad;
+  /// Total final de la línea que paga el cliente
+  double get totalCobrado => (precioUnitario * cantidad) - descuento;
+
+  /// Base imponible (Subtotal gravable)
+  double get subtotalItem {
+    if (tipoImpuesto == 'EXENTO') return totalCobrado;
+    if (precioIncluyeIsv) {
+      return double.parse((totalCobrado / 1.15).toStringAsFixed(2));
+    }
+    return totalCobrado;
+  }
+
+  /// Impuesto ISV (15%)
+  double get isv15Item {
+    if (tipoImpuesto == 'EXENTO') return 0.0;
+    if (precioIncluyeIsv) {
+      return double.parse((totalCobrado - subtotalItem).toStringAsFixed(2));
+    }
+    return double.parse((totalCobrado * 0.15).toStringAsFixed(2));
+  }
 }
 
 class CartProvider extends ChangeNotifier {
@@ -45,14 +70,33 @@ class CartProvider extends ChangeNotifier {
 
   int get totalItemsCount => _items.fold<int>(0, (sum, i) => sum + i.cantidad);
 
-  double get subtotal => _items.fold<double>(0.0, (sum, i) => sum + i.subtotal);
-  double get isv15 => double.parse((subtotal * 0.15).toStringAsFixed(2));
+  double get subtotalGravado15 => _items.fold<double>(
+      0.0, (sum, i) => i.tipoImpuesto != 'EXENTO' ? sum + i.subtotalItem : sum);
+
+  double get subtotalGravado18 => 0.00;
+
+  double get subtotalExento => _items.fold<double>(
+      0.0, (sum, i) => i.tipoImpuesto == 'EXENTO' ? sum + i.totalCobrado : sum);
+
+  double get subtotal =>
+      double.parse((subtotalGravado15 + subtotalExento).toStringAsFixed(2));
+
+  double get isv15 => double.parse(
+      _items.fold<double>(0.0, (sum, i) => sum + i.isv15Item).toStringAsFixed(2));
+
+  double get isv18 => 0.00;
+
+  double get totalDescuento => double.parse(
+      _items.fold<double>(0.0, (sum, i) => sum + i.descuento).toStringAsFixed(2));
+
+  /// Total Cobro al Cliente: Idéntico al cálculo de la Web
   double get total => double.parse((subtotal + isv15).toStringAsFixed(2));
 
   bool addItem({
     required VariantModel variant,
     required String productName,
     int quantity = 1,
+    double discount = 0.0,
   }) {
     final index = _items.indexWhere((i) => i.varianteId == variant.id);
 
@@ -70,6 +114,13 @@ class CartProvider extends ChangeNotifier {
       return false;
     }
 
+    final double effectivePrice = (variant.precioConDescuento != null &&
+            variant.precioConDescuento! > 0)
+        ? variant.precioConDescuento!
+        : (variant.descuentoPorcentaje > 0
+            ? variant.precioVenta * (1 - variant.descuentoPorcentaje / 100)
+            : variant.precioVenta);
+
     _items.add(
       MobileCartItem(
         varianteId: variant.id,
@@ -78,9 +129,12 @@ class CartProvider extends ChangeNotifier {
         talla: variant.talla,
         color: variant.color,
         sku: variant.sku,
-        precioUnitario: variant.precioVenta,
+        precioUnitario: effectivePrice,
         cantidad: quantity,
         stockDisponible: variant.stock,
+        precioIncluyeIsv: variant.precioIncluyeIsv,
+        tipoImpuesto: variant.tipoImpuesto,
+        descuento: discount,
       ),
     );
     notifyListeners();
@@ -97,6 +151,14 @@ class CartProvider extends ChangeNotifier {
         item.cantidad = newQty;
       }
     }
+    notifyListeners();
+  }
+
+  void updateDiscount(int index, double discount) {
+    if (index < 0 || index >= _items.length) return;
+    final item = _items[index];
+    final maxAllowed = item.precioUnitario * item.cantidad;
+    item.descuento = discount.clamp(0.0, maxAllowed);
     notifyListeners();
   }
 
@@ -122,6 +184,9 @@ class CartProvider extends ChangeNotifier {
     required String metodoPago,
     String? bancoTransferencia,
     double? montoRecibido,
+    double? montoEfectivo,
+    double? montoTarjeta,
+    double? montoTransferencia,
   }) async {
     if (_items.isEmpty) return null;
 
@@ -132,12 +197,15 @@ class CartProvider extends ChangeNotifier {
       final payload = {
         'cliente_id': _selectedCustomer?.id,
         'metodo_pago': metodoPago,
+        'monto_efectivo': montoEfectivo ?? (metodoPago == 'EFECTIVO' ? total : 0.0),
+        'monto_tarjeta': montoTarjeta ?? (metodoPago == 'TARJETA' ? total : 0.0),
+        'monto_transferencia': montoTransferencia ?? (metodoPago == 'TRANSFERENCIA' ? total : 0.0),
         'banco_transferencia': metodoPago == 'TRANSFERENCIA' ? bancoTransferencia : null,
         'monto_recibido': montoRecibido ?? total,
         'items': _items.map((i) => {
           'variante_id': i.varianteId,
           'cantidad': i.cantidad,
-          'descuento': 0,
+          'descuento': i.descuento,
         }).toList(),
       };
 
@@ -164,4 +232,3 @@ class CartProvider extends ChangeNotifier {
     return null;
   }
 }
-

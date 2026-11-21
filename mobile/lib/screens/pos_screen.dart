@@ -281,7 +281,7 @@ class _PosScreenState extends State<PosScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Subtotal:', style: TextStyle(fontSize: 12, color: AppColors.slateGray)),
+                      const Text('Subtotal Gravable (15%):', style: TextStyle(fontSize: 12, color: AppColors.slateGray)),
                       Text(Formatters.currency(cart.subtotal), style: const TextStyle(fontSize: 12)),
                     ],
                   ),
@@ -297,7 +297,7 @@ class _PosScreenState extends State<PosScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('TOTAL:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+                      const Text('Total Cobro al Cliente:', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900)),
                       Text(
                         Formatters.currency(cart.total),
                         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.primary),

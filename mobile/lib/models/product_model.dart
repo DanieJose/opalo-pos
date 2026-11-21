@@ -7,6 +7,8 @@ class VariantModel {
   final String color;
   final double precioCosto;
   final double precioVenta;
+  final bool precioIncluyeIsv;
+  final String tipoImpuesto;
   final double descuentoPorcentaje;
   final double? precioConDescuento;
   final int stock;
@@ -21,6 +23,8 @@ class VariantModel {
     required this.color,
     this.precioCosto = 0.0,
     required this.precioVenta,
+    this.precioIncluyeIsv = true,
+    this.tipoImpuesto = 'ISV_15',
     this.descuentoPorcentaje = 0.0,
     this.precioConDescuento,
     required this.stock,
@@ -41,6 +45,10 @@ class VariantModel {
       precioVenta: (json['precio_venta'] != null)
           ? double.tryParse(json['precio_venta'].toString()) ?? 0.0
           : 0.0,
+      precioIncluyeIsv: json['precio_incluye_isv'] == 1 ||
+          json['precio_incluye_isv'] == true ||
+          json['precio_incluye_isv'] == null,
+      tipoImpuesto: json['tipo_impuesto'] ?? 'ISV_15',
       descuentoPorcentaje: (json['descuento_porcentaje'] != null)
           ? double.tryParse(json['descuento_porcentaje'].toString()) ?? 0.0
           : 0.0,
@@ -71,6 +79,8 @@ class ProductModel {
   final String? descripcion;
   final double precioCosto;
   final double precioBase;
+  final bool precioIncluyeIsv;
+  final String tipoImpuesto;
   final bool aplicaDescuento;
   final double descuentoPorcentaje;
   final double? precioConDescuento;
@@ -85,6 +95,8 @@ class ProductModel {
     this.descripcion,
     this.precioCosto = 0.0,
     required this.precioBase,
+    this.precioIncluyeIsv = true,
+    this.tipoImpuesto = 'ISV_15',
     this.aplicaDescuento = false,
     this.descuentoPorcentaje = 0.0,
     this.precioConDescuento,
@@ -108,6 +120,10 @@ class ProductModel {
       precioBase: (json['precio_base'] != null)
           ? double.tryParse(json['precio_base'].toString()) ?? 0.0
           : 0.0,
+      precioIncluyeIsv: json['precio_incluye_isv'] == 1 ||
+          json['precio_incluye_isv'] == true ||
+          json['precio_incluye_isv'] == null,
+      tipoImpuesto: json['tipo_impuesto'] ?? 'ISV_15',
       aplicaDescuento: json['aplica_descuento'] == 1 || json['aplica_descuento'] == true,
       descuentoPorcentaje: (json['descuento_porcentaje'] != null)
           ? double.tryParse(json['descuento_porcentaje'].toString()) ?? 0.0
