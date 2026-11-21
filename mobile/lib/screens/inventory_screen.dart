@@ -4,6 +4,7 @@ import '../core/constants/app_colors.dart';
 import '../core/constants/api_constants.dart';
 import '../providers/product_provider.dart';
 import '../widgets/sync_status_badge.dart';
+import '../widgets/logout_dialog.dart';
 
 class InventoryScreen extends StatefulWidget {
   const InventoryScreen({super.key});
@@ -50,6 +51,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
               productProvider.loadProducts();
               productProvider.loadLowStockAlerts();
             },
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout_rounded, color: Colors.redAccent, size: 21),
+            tooltip: 'Salir / Cerrar Sesión',
+            onPressed: () => showLogoutConfirmationDialog(context),
           ),
         ],
       ),

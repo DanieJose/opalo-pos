@@ -8,6 +8,7 @@ import '../providers/cart_provider.dart';
 import '../providers/product_provider.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/sync_status_badge.dart';
+import '../widgets/logout_dialog.dart';
 import 'checkout_screen.dart';
 
 class PosScreen extends StatefulWidget {
@@ -363,6 +364,11 @@ class _PosScreenState extends State<PosScreen> {
         ),
         actions: [
           const SyncStatusBadge(),
+          IconButton(
+            icon: const Icon(Icons.logout_rounded, color: Colors.redAccent, size: 21),
+            tooltip: 'Salir / Cerrar Sesión',
+            onPressed: () => showLogoutConfirmationDialog(context),
+          ),
           Stack(
             alignment: Alignment.center,
             children: [

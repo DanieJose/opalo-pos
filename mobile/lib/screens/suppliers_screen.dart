@@ -4,6 +4,7 @@ import '../core/constants/app_colors.dart';
 import '../core/constants/api_constants.dart';
 import '../core/network/api_client.dart';
 import '../models/supplier_model.dart';
+import '../widgets/logout_dialog.dart';
 
 class SuppliersScreen extends StatefulWidget {
   const SuppliersScreen({super.key});
@@ -76,6 +77,11 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _fetchSuppliers,
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout_rounded, color: Colors.redAccent, size: 21),
+            tooltip: 'Salir / Cerrar Sesión',
+            onPressed: () => showLogoutConfirmationDialog(context),
           ),
         ],
       ),

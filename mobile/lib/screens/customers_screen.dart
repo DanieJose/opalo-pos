@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
 import '../providers/customer_provider.dart';
 import '../widgets/sync_status_badge.dart';
+import '../widgets/logout_dialog.dart';
 
 class CustomersScreen extends StatefulWidget {
   const CustomersScreen({super.key});
@@ -99,6 +100,11 @@ class _CustomersScreenState extends State<CustomersScreen> {
           IconButton(
             icon: const Icon(Icons.person_add, color: AppColors.primary),
             onPressed: _showAddCustomerDialog,
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout_rounded, color: Colors.redAccent, size: 21),
+            tooltip: 'Salir / Cerrar Sesión',
+            onPressed: () => showLogoutConfirmationDialog(context),
           ),
         ],
       ),
