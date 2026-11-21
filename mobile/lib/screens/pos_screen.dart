@@ -7,6 +7,7 @@ import '../models/product_model.dart';
 import '../providers/cart_provider.dart';
 import '../providers/product_provider.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/sync_status_badge.dart';
 import 'checkout_screen.dart';
 
 class PosScreen extends StatefulWidget {
@@ -361,6 +362,7 @@ class _PosScreenState extends State<PosScreen> {
           ],
         ),
         actions: [
+          const SyncStatusBadge(),
           Stack(
             alignment: Alignment.center,
             children: [

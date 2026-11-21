@@ -1,6 +1,7 @@
 import { io, Socket } from 'socket.io-client';
 
 let socket: Socket | null = null;
+const isConnected = ref(false);
 
 export const useSocket = () => {
   const config = useRuntimeConfig();
@@ -16,15 +17,27 @@ export const useSocket = () => {
       });
 
       socket.on('connect', () => {
+        isConnected.value = true;
         console.log('[Web Socket] Conectado en tiempo real al servidor POS:', socket?.id);
       });
 
       socket.on('disconnect', () => {
+        isConnected.value = false;
         console.log('[Web Socket] Desconectado del servidor POS');
+      });
+
+      socket.on('connect_error', (err) => {
+        isConnected.value = false;
+        console.warn('[Web Socket] Error de conexión:', err);
       });
     }
     return socket!;
   };
+
+  // Inicializar en cliente si aún no está inicializado
+  if (process.client && !socket) {
+    getSocket();
+  }
 
   const onEvent = (event: string, callback: (...args: any[]) => void) => {
     if (process.client) {
@@ -45,8 +58,8 @@ export const useSocket = () => {
 
   return {
     getSocket,
+    isConnected,
     onEvent,
     offEvent
   };
 };
-

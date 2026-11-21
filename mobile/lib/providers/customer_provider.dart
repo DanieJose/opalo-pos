@@ -11,21 +11,30 @@ class CustomerProvider extends ChangeNotifier {
   List<CustomerModel> _customers = [];
   bool _isLoading = false;
   String? _errorMessage;
+  String? _lastSearch;
 
   CustomerProvider() {
     _initSocketListeners();
   }
 
   void _initSocketListeners() {
+    // Sincronización en tiempo real: Nueva clienta registrada en Web
     _socket.on('pos:customer_created', (data) {
-      debugPrint('[CustomerProvider Real-Time] Nueva clienta registrada');
-      loadCustomers();
+      debugPrint('[CustomerProvider Real-Time] Nueva clienta registrada en Web/POS');
+      loadCustomers(silent: true);
     });
 
+    // Sincronización en tiempo real: Clienta actualizada (puntos, datos o estado) en Web
+    _socket.on('pos:customer_updated', (data) {
+      debugPrint('[CustomerProvider Real-Time] Datos/puntos de clienta actualizados en Web: $data');
+      loadCustomers(silent: true);
+    });
+
+    // Sincronización en tiempo real: Venta realizada (suma de puntos de lealtad)
     _socket.on('pos:sale_created', (data) {
-      // Si la venta sumó puntos a una clienta, refrescar lista
       if (data != null && data['cliente_id'] != null) {
-        loadCustomers();
+        debugPrint('[CustomerProvider Real-Time] Venta asociada a clienta, refrescando puntos');
+        loadCustomers(silent: true);
       }
     });
   }
@@ -34,14 +43,20 @@ class CustomerProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  Future<void> loadCustomers({String? search}) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
+  Future<void> loadCustomers({String? search, bool silent = false}) async {
+    if (search != null) _lastSearch = search;
+
+    if (!silent) {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+    }
 
     try {
-      final queryParams = <String, dynamic>{'estado': 'ACTIVO', 'limit': 30};
-      if (search != null && search.isNotEmpty) queryParams['search'] = search;
+      final queryParams = <String, dynamic>{'estado': 'ACTIVO', 'limit': 40};
+      if (_lastSearch != null && _lastSearch!.trim().isNotEmpty) {
+        queryParams['search'] = _lastSearch!.trim();
+      }
 
       final response = await _client.dio.get(
         ApiConstants.customers,
@@ -53,7 +68,9 @@ class CustomerProvider extends ChangeNotifier {
         _customers = list.map((c) => CustomerModel.fromJson(c)).toList();
       }
     } catch (e) {
-      _errorMessage = 'Error cargando lista de clientas';
+      if (!silent) {
+        _errorMessage = 'Error cargando lista de clientas';
+      }
     }
 
     _isLoading = false;
@@ -100,4 +117,3 @@ class CustomerProvider extends ChangeNotifier {
     return null;
   }
 }
-

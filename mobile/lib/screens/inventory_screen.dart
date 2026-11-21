@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
 import '../core/constants/api_constants.dart';
 import '../providers/product_provider.dart';
+import '../widgets/sync_status_badge.dart';
 
 class InventoryScreen extends StatefulWidget {
   const InventoryScreen({super.key});
@@ -42,6 +43,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
         foregroundColor: AppColors.slateDark,
         elevation: 0,
         actions: [
+          const SyncStatusBadge(),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {

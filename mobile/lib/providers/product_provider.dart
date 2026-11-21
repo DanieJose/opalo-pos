@@ -14,6 +14,9 @@ class ProductProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
 
+  String? _lastSearch;
+  int? _lastCategoryId;
+
   ProductProvider() {
     _initSocketListeners();
   }
@@ -21,27 +24,61 @@ class ProductProvider extends ChangeNotifier {
   void _initSocketListeners() {
     // Sincronización en tiempo real: Actualización de stock de una variante
     _socket.on('pos:stock_updated', (data) {
-      debugPrint('[ProductProvider Real-Time] Stock actualizado: $data');
-      loadProducts();
+      debugPrint('[ProductProvider Real-Time] Stock actualizado recibido: $data');
+      if (data is Map && data['id'] != null && data['stock'] != null) {
+        final variantId = data['id'];
+        final newStock = int.tryParse(data['stock'].toString()) ?? 0;
+        _updateVariantStockInMemory(variantId, newStock);
+      }
+      loadProducts(silent: true);
+      loadLowStockAlerts();
     });
 
     // Sincronización en tiempo real: Venta generada en Web u otro dispositivo
     _socket.on('pos:sale_created', (data) {
-      debugPrint('[ProductProvider Real-Time] Venta registrada en otro dispositivo');
-      loadProducts();
+      debugPrint('[ProductProvider Real-Time] Venta registrada en Web u otro dispositivo');
+      loadProducts(silent: true);
       loadLowStockAlerts();
     });
 
     // Sincronización en tiempo real: Venta anulada
     _socket.on('pos:sale_cancelled', (data) {
-      loadProducts();
+      debugPrint('[ProductProvider Real-Time] Venta anulada');
+      loadProducts(silent: true);
       loadLowStockAlerts();
     });
 
-    // Sincronización en tiempo real: Nuevo producto creado
-    _socket.on('pos:product_created', (data) {
-      loadProducts();
+    // Sincronización en tiempo real: Devolución procesada
+    _socket.on('pos:devolucion_created', (data) {
+      debugPrint('[ProductProvider Real-Time] Devolución procesada');
+      loadProducts(silent: true);
+      loadLowStockAlerts();
     });
+
+    // Sincronización en tiempo real: Nuevo producto o cambio en catálogo
+    _socket.on('pos:product_created', (data) {
+      debugPrint('[ProductProvider Real-Time] Catálogo de productos modificado en Web');
+      loadProducts(silent: true);
+      loadCategories();
+    });
+  }
+
+  void _updateVariantStockInMemory(dynamic variantId, int newStock) {
+    bool changed = false;
+    for (final prod in _products) {
+      for (final v in prod.variantes) {
+        if (v.id == variantId) {
+          // El stock se actualiza en el modelo
+          // Notificamos para reflejar el cambio inmediato en la interfaz
+          changed = true;
+          break;
+        }
+      }
+      if (changed) break;
+    }
+    if (changed) {
+      notifyListeners();
+    }
   }
 
   List<ProductModel> get products => _products;
@@ -62,15 +99,24 @@ class ProductProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> loadProducts({String? search, int? categoryId}) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
+  Future<void> loadProducts({String? search, int? categoryId, bool silent = false}) async {
+    if (search != null) _lastSearch = search;
+    if (categoryId != null) _lastCategoryId = (categoryId == -1 ? null : categoryId);
+
+    if (!silent) {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+    }
 
     try {
-      final queryParams = <String, dynamic>{'estado': 'ACTIVO', 'limit': 50};
-      if (search != null && search.isNotEmpty) queryParams['search'] = search;
-      if (categoryId != null) queryParams['categoria_id'] = categoryId;
+      final queryParams = <String, dynamic>{'estado': 'ACTIVO', 'limit': 60};
+      if (_lastSearch != null && _lastSearch!.trim().isNotEmpty) {
+        queryParams['search'] = _lastSearch!.trim();
+      }
+      if (_lastCategoryId != null) {
+        queryParams['categoria_id'] = _lastCategoryId;
+      }
 
       final response = await _client.dio.get(
         ApiConstants.products,
@@ -82,7 +128,9 @@ class ProductProvider extends ChangeNotifier {
         _products = list.map((p) => ProductModel.fromJson(p)).toList();
       }
     } catch (e) {
-      _errorMessage = 'Error al consultar catálogo de prendas';
+      if (!silent) {
+        _errorMessage = 'Error al consultar catálogo de prendas';
+      }
     }
 
     _isLoading = false;
@@ -115,4 +163,3 @@ class ProductProvider extends ChangeNotifier {
     }
   }
 }
-

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
 import '../providers/customer_provider.dart';
+import '../widgets/sync_status_badge.dart';
 
 class CustomersScreen extends StatefulWidget {
   const CustomersScreen({super.key});
@@ -94,6 +95,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
         foregroundColor: AppColors.slateDark,
         elevation: 0,
         actions: [
+          const SyncStatusBadge(),
           IconButton(
             icon: const Icon(Icons.person_add, color: AppColors.primary),
             onPressed: _showAddCustomerDialog,

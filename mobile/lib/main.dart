@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'core/constants/app_colors.dart';
+import 'core/constants/api_constants.dart';
 import 'core/network/socket_service.dart';
 import 'providers/auth_provider.dart';
 import 'providers/cart_provider.dart';
@@ -13,6 +14,9 @@ import 'screens/main_navigation.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Cargar URL configurada (Producción Railway por defecto)
+  await ApiConstants.initBaseUrl();
+
   // Inicializar servicio WebSockets para sincronización en tiempo real con la Web
   SocketService().init();
 
@@ -23,6 +27,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: authProvider),
+        ChangeNotifierProvider.value(value: SocketService()),
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => ProductProvider()),
         ChangeNotifierProvider(create: (_) => CustomerProvider()),

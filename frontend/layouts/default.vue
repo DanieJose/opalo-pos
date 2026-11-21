@@ -172,6 +172,23 @@
 
         <!-- Información de Cajero / Usuario y Salir -->
         <div class="flex items-center space-x-2 sm:space-x-3 shrink-0">
+          <!-- Indicador de Sincronización en Tiempo Real -->
+          <div 
+            class="hidden sm:flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wide border transition"
+            :class="isConnected 
+              ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+              : 'bg-amber-50 text-amber-700 border-amber-200'"
+            :title="isConnected 
+              ? 'Sincronización en tiempo real activa con App Móvil y Servidor' 
+              : 'Reconectando con el servidor POS...'"
+          >
+            <span 
+              class="w-2 h-2 rounded-full" 
+              :class="isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'"
+            ></span>
+            <span>{{ isConnected ? 'En Vivo' : 'Reconectando' }}</span>
+          </div>
+
           <div class="text-right hidden sm:block">
             <p class="text-xs font-bold text-slate-900 leading-tight truncate max-w-[120px]">
               {{ user?.nombre || 'Personal Ópalo' }}
@@ -434,6 +451,7 @@
 const route = useRoute();
 const { user, isAdmin, canAccessModule, logout, fetchProfile } = useAuth();
 const { companyConfig, getFullLogoUrl, fetchCompanyConfig } = useCompanyConfig();
+const { isConnected } = useSocket();
 const logoError = ref(false);
 const isMobileMenuOpen = ref(false);
 
