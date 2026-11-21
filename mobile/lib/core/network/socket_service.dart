@@ -14,6 +14,7 @@ class SocketService extends ChangeNotifier {
   String get currentServerUrl => _currentServerUrl;
 
   final Map<String, List<Function(dynamic)>> _listeners = {};
+  final Set<String> _socketRegisteredEvents = {};
 
   SocketService._internal();
 
@@ -24,7 +25,9 @@ class SocketService extends ChangeNotifier {
 
     if (_socket != null) {
       _socket?.dispose();
+      _socket = null;
     }
+    _socketRegisteredEvents.clear();
 
     try {
       debugPrint('[Mobile WebSocket] Intentando conectar a: $serverUrl');
@@ -39,6 +42,8 @@ class SocketService extends ChangeNotifier {
             .build(),
       );
 
+      _socket?.connect();
+
       _socket?.onConnect((_) {
         _isConnected = true;
         debugPrint('[Mobile WebSocket] Conectado en tiempo real al servidor POS: ${_socket?.id}');
@@ -52,7 +57,9 @@ class SocketService extends ChangeNotifier {
       });
 
       _socket?.onConnectError((err) {
+        _isConnected = false;
         debugPrint('[Mobile WebSocket] Error de conexión: $err');
+        notifyListeners();
       });
 
       // Eventos principales del ecosistema Ópalo POS
@@ -70,14 +77,26 @@ class SocketService extends ChangeNotifier {
       ];
 
       for (final event in events) {
-        _socket?.on(event, (data) {
-          debugPrint('[Mobile WebSocket] Evento recibido "$event": $data');
-          _dispatch(event, data);
-        });
+        _registerSocketListener(event);
+      }
+
+      // Re-registrar eventos de listeners existentes
+      for (final event in _listeners.keys) {
+        _registerSocketListener(event);
       }
     } catch (e) {
       debugPrint('[Mobile WebSocket Error] No se pudo inicializar socket: $e');
     }
+  }
+
+  void _registerSocketListener(String event) {
+    if (_socketRegisteredEvents.contains(event)) return;
+    _socketRegisteredEvents.add(event);
+
+    _socket?.on(event, (data) {
+      debugPrint('[Mobile WebSocket] Evento recibido "$event": $data');
+      _dispatch(event, data);
+    });
   }
 
   void _dispatch(String event, dynamic data) {
@@ -94,18 +113,21 @@ class SocketService extends ChangeNotifier {
 
   void on(String event, Function(dynamic) callback) {
     _listeners.putIfAbsent(event, () => []).add(callback);
-    _socket?.on(event, (data) {
-      _dispatch(event, data);
-    });
+    _registerSocketListener(event);
   }
 
   void off(String event) {
     _listeners.remove(event);
+    _socketRegisteredEvents.remove(event);
     _socket?.off(event);
   }
 
   void reconnect() {
-    _socket?.connect();
+    if (_socket != null) {
+      _socket?.connect();
+    } else {
+      init();
+    }
   }
 
   void disconnect() {
@@ -113,6 +135,7 @@ class SocketService extends ChangeNotifier {
     _socket?.dispose();
     _socket = null;
     _isConnected = false;
+    _socketRegisteredEvents.clear();
     notifyListeners();
   }
 }

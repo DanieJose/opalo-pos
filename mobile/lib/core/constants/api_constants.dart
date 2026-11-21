@@ -3,12 +3,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ApiConstants {
   // URLs de conexión disponibles
   static const String productionBaseUrl = 'https://opalo-pos-production.up.railway.app/api/v1';
+  static const String localWifiBaseUrl = 'http://192.168.1.5:4000/api/v1';
   static const String localAndroidBaseUrl = 'http://10.0.2.2:4000/api/v1';
   static const String localBaseUrl = 'http://localhost:4000/api/v1';
 
   static const String prefKeyBaseUrl = 'opalo_api_base_url';
 
-  // Por defecto se conecta al backend en producción desplegado en Railway para sincronizar con la Web
+  // Por defecto se conecta a Producción en Railway
   static String baseUrl = productionBaseUrl;
 
   /// Cargar URL guardada en almacenamiento local o usar producción por defecto
